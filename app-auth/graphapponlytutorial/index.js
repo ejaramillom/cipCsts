@@ -1,23 +1,20 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-
-// <ProgramSnippet>
-import { keyInSelect } from 'readline-sync';
-
-import settings from './appSettings.js';
-import {
+require('dotenv').config();
+const pino = require('pino');
+const logger = pino({ level: 'info' });
+const { keyInSelect } = require('readline-sync');
+const settings = require('./appSettings.js');
+const {
   initializeGraphForAppOnlyAuth,
   getAppOnlyTokenAsync,
   getUsersAsync,
   makeGraphCallAsync,
-} from './graphHelper.js';
+} = require('./graphHelper.js');
 
 async function main() {
-  console.log('JavaScript Graph App-Only Tutorial');
+  logger.info('JavaScript Graph App-Only Tutorial');
 
   let choice = 0;
 
-  // Initialize Graph
   initializeGraph(settings);
 
   const choices = ['Display access token', 'List users', 'Make a Graph call'];
@@ -27,7 +24,6 @@ async function main() {
 
     switch (choice) {
       case -1:
-        // Exit
         console.log('Goodbye...');
         break;
       case 0:

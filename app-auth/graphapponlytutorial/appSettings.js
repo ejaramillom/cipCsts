@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-
 // <SettingsSnippet>
 const settings = {
   clientId: 'YOUR_CLIENT_ID_HERE',
@@ -8,5 +5,7 @@ const settings = {
   tenantId: 'YOUR_TENANT_ID_HERE',
 };
 
-export default settings;
+module.exports = exports = {
+  settings,
+};
 // </SettingsSnippet>

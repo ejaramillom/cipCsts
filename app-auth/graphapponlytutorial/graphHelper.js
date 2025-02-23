@@ -1,17 +1,14 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-
 // <AppOnlyAuthConfigSnippet>
-import 'isomorphic-fetch';
-import { ClientSecretCredential } from '@azure/identity';
-import { Client } from '@microsoft/microsoft-graph-client';
-// prettier-ignore
-import { TokenCredentialAuthenticationProvider } from
-  '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
+require('isomorphic-fetch');
+const { ClientSecretCredential } = require('@azure/identity');
+const { Client } = require('@microsoft/microsoft-graph-client');
+const {
+  TokenCredentialAuthenticationProvider,
+} = require('@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js');
 
-let _settings = undefined;
-let _clientSecretCredential = undefined;
-let _appClient = undefined;
+let _settings;
+let _clientSecretCredential;
+let _appClient;
 
 export function initializeGraphForAppOnlyAuth(settings) {
   // Ensure settings isn't null
@@ -50,7 +47,7 @@ export function initializeGraphForAppOnlyAuth(settings) {
 // </AppOnlyAuthConfigSnippet>
 
 // <GetAppOnlyTokenSnippet>
-export async function getAppOnlyTokenAsync() {
+async function getAppOnlyTokenAsync() {
   // Ensure credential isn't undefined
   if (!_clientSecretCredential) {
     throw new Error('Graph has not been initialized for app-only auth');
@@ -65,7 +62,7 @@ export async function getAppOnlyTokenAsync() {
 // </GetAppOnlyTokenSnippet>
 
 // <GetUsersSnippet>
-export async function getUsersAsync() {
+async function getUsersAsync() {
   // Ensure client isn't undefined
   if (!_appClient) {
     throw new Error('Graph has not been initialized for app-only auth');
@@ -83,7 +80,13 @@ export async function getUsersAsync() {
 // <MakeGraphCallSnippet>
 // This function serves as a playground for testing Graph snippets
 // or other code
-export async function makeGraphCallAsync() {
+async function makeGraphCallAsync() {
   // INSERT YOUR CODE HERE
 }
 // </MakeGraphCallSnippet>
+
+module.exports = {
+  makeGraphCallAsync,
+  getAppOnlyTokenAsync,
+  getUsersAsync,
+};

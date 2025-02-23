@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "description": "",
-  "main": "index.js",
+  "main": "app-auth/graphapponlytutorial/index.js",
   "scripts": {
-    "lint": "eslint .",
-    "start": "node index.js",
+    "lint": "app-auth/graphapponlytutorial/node_modules/.bin/eslint .",
+    "start": "node app-auth/graphapponlytutorial/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -21,7 +21,9 @@
   "dependencies": {
     "@azure/identity": "^4.6.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
+    "dotenv": "^16.4.7",
     "isomorphic-fetch": "^3.0.0",
+    "pino": "^9.6.0",
     "readline-sync": "^1.4.10"
   }
 }

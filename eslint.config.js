@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-
 import globals from 'globals';
 import js from '@eslint/js';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
@@ -28,14 +25,6 @@ export default [
     },
 
     rules: {
-      'header/header': [
-        'error',
-        'line',
-        [
-          ' Copyright (c) Microsoft Corporation.',
-          ' Licensed under the MIT license.',
-        ],
-      ],
       'prettier/prettier': [
         'error',
         {
