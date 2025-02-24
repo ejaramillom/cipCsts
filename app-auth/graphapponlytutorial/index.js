@@ -2,7 +2,6 @@ require('dotenv').config();
 const pino = require('pino');
 const logger = pino({ level: 'info' });
 const { keyInSelect } = require('readline-sync');
-const settings = require('./appSettings.js');
 const {
   initializeGraphForAppOnlyAuth,
   getAppOnlyTokenAsync,
@@ -11,88 +10,92 @@ const {
 } = require('./graphHelper.js');
 
 async function main() {
-  logger.info('JavaScript Graph App-Only Tutorial');
+  try {
+    logger.info('DEBUG: 3. JavaScript Graph App-Only Tutorial');
 
-  let choice = 0;
-
-  initializeGraph(settings);
-
-  const choices = ['Display access token', 'List users', 'Make a Graph call'];
-
-  while (choice != -1) {
+    let choice = 0;
+    const choices = ['Display access token', 'List users', 'Make a Graph call'];
+    initializeGraphForAppOnlyAuth();
     choice = keyInSelect(choices, 'Select an option', { cancel: 'Exit' });
-
     switch (choice) {
       case -1:
-        console.log('Goodbye...');
-        break;
+        return logger.info('DEBUG: 4. No choice was selected. Interrupting execution...');
       case 0:
         // Display access token
-        await displayAccessTokenAsync();
-        break;
+        return await displayAccessTokenAsync();
       case 1:
         // List emails from user's inbox
-        await listUsersAsync();
-        break;
+        return await listUsersAsync();
       case 2:
         // Run any Graph code
-        await doGraphCallAsync();
-        break;
+        return await makeGraphCallAsync();
       default:
-        console.log('Invalid choice! Please try again.');
+        return logger.info(`DEBUG: 5. Invalid choice. Please select one of the following: ${choices} Interrupting execution...`);
     }
+  } catch (error) {
+    logger.error({ name: error.name, message: error.message }, 'DEBUG: 6. unhandled error during main index execution. ');
+
+    throw error;
   }
 }
 
-main();
-// </ProgramSnippet>
-
-// <InitializeGraphSnippet>
-function initializeGraph(settings) {
-  initializeGraphForAppOnlyAuth(settings);
-}
-// </InitializeGraphSnippet>
-
-// <DisplayAccessTokenSnippet>
 async function displayAccessTokenAsync() {
   try {
     const appOnlyToken = await getAppOnlyTokenAsync();
-    console.log(`App-only token: ${appOnlyToken}`);
-  } catch (err) {
-    console.log(`Error getting app-only access token: ${err}`);
+    return logger.info(`DEBUG: 7. App-only token: ${appOnlyToken}`);
+
+  } catch (error) {
+    logger.error({ name: error.name, message: error.message }, 'DEBUG: 8. unhandled error getting app-only access token. ');
+
+    throw error;
   }
 }
-// </DisplayAccessTokenSnippet>
 
-// <ListUsersSnippet>
 async function listUsersAsync() {
   try {
     const userPage = await getUsersAsync();
     const users = userPage.value;
-
-    // Output each user's details
     for (const user of users) {
-      console.log(`User: ${user.displayName ?? 'NO NAME'}`);
-      console.log(`  ID: ${user.id}`);
-      console.log(`  Email: ${user.mail ?? 'NO EMAIL'}`);
+      logger.info(
+        {
+          user: `${user.displayName ?? 'NO NAME'}`,
+          id: `${user.id ?? 'NO ID'}`,
+          email: `${user.mail ?? 'NO EMAIL'}`,
+        },
+        `DEBUG: 9. User list of users: ${user}`);
     }
+    // Because if @odata.nextLink is not undefined, there are more users available on the server
+    const moreAvailable = await moreUsersOnTheServer(userPage);
+    return logger.warn({ usersInServer: moreAvailable }, 'DEBUG: 10. More users on the server? ');
 
-    // If @odata.nextLink is not undefined, there are more users
-    // available on the server
-    const moreAvailable = userPage['@odata.nextLink'] != undefined;
-    console.log(`\nMore users available? ${moreAvailable}`);
-  } catch (err) {
-    console.log(`Error getting users: ${err}`);
+  } catch (error) {
+    logger.error({ name: error.name, message: error.message }, 'DEBUG: 11. unhandled error getting app-only access token. ');
+
+    throw error;
   }
 }
-// </ListUsersSnippet>
 
-// <MakeGraphCallSnippet>
-async function doGraphCallAsync() {
+async function moreUsersOnTheServer(userPage) {
   try {
-    await makeGraphCallAsync();
-  } catch (err) {
-    console.log(`Error making Graph call: ${err}`);
+    return userPage['@odata.nextLink'] !== undefined;
+
+  } catch (error) {
+    logger.error({ name: error.name, message: error.message }, 'DEBUG: 12. Unhandled error while checking users on server. ');
+
+    throw error;
   }
 }
-// </MakeGraphCallSnippet>
+
+(async () => {
+  try{
+    const result = await main();
+    logger.info({ status: 200, message: result }, 'DEBUG: 1. cip csts success! ');
+
+    process.exit(0);
+
+  } catch (error) {
+    logger.error({ name: error.name, message: error.message }, 'DEBUG: 2. Test failed: ');
+
+    throw error;
+  }
+})();
