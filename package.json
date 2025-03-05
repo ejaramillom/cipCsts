@@ -1,11 +1,10 @@
 {
   "name": "graphtutorial",
   "version": "1.0.0",
-  "type": "module",
   "description": "",
-  "main": "app-auth/graphapponlytutorial/index.js",
+  "main": "/index.js",
   "scripts": {
-    "lint": "app-auth/graphapponlytutorial/node_modules/.bin/eslint .",
+    "lint": "/node_modules/.bin/eslint .",
     "start": "node app-auth/graphapponlytutorial/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

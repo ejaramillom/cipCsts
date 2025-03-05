@@ -1,22 +1,20 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+require('dotenv').config();
+const pino = require('pino');
+const logger = pino({ level: 'info' });
+require('isomorphic-fetch');
+const { DeviceCodeCredential } = require('@azure/identity');
+const { Client } = require('@microsoft/microsoft-graph-client');
+const {
+  TokenCredentialAuthenticationProvider,
+} = require('@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js');
 
-// <UserAuthConfigSnippet>
-import 'isomorphic-fetch';
-import { DeviceCodeCredential } from '@azure/identity';
-import { Client } from '@microsoft/microsoft-graph-client';
-// prettier-ignore
-import { TokenCredentialAuthenticationProvider } from
-  '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
+let _settings;
+let _deviceCodeCredential;
+let _userClient;
 
-let _settings = undefined;
-let _deviceCodeCredential = undefined;
-let _userClient = undefined;
-
-export function initializeGraphForUserAuth(settings, deviceCodePrompt) {
-  // Ensure settings isn't null
+function initializeGraphForUserAuth(settings, deviceCodePrompt) {
   if (!settings) {
-    throw new Error('Settings cannot be undefined');
+    throw new Error('DEBUG: 13. Settings cannot be undefined');
   }
 
   _settings = settings;
@@ -30,7 +28,7 @@ export function initializeGraphForUserAuth(settings, deviceCodePrompt) {
   const authProvider = new TokenCredentialAuthenticationProvider(
     _deviceCodeCredential,
     {
-      scopes: settings.graphUserScopes,
+      scopes: `${settings.graphUserScopes}`.split(','),
     },
   );
 
@@ -38,10 +36,8 @@ export function initializeGraphForUserAuth(settings, deviceCodePrompt) {
     authProvider: authProvider,
   });
 }
-// </UserAuthConfigSnippet>
 
-// <GetUserTokenSnippet>
-export async function getUserTokenAsync() {
+async function getUserTokenAsync() {
   // Ensure credential isn't undefined
   if (!_deviceCodeCredential) {
     throw new Error('Graph has not been initialized for user auth');
@@ -58,11 +54,8 @@ export async function getUserTokenAsync() {
   );
   return response.token;
 }
-// </GetUserTokenSnippet>
 
-// <GetUserSnippet>
-export async function getUserAsync() {
-  // Ensure client isn't undefined
+async function getUserAsync() {
   if (!_userClient) {
     throw new Error('Graph has not been initialized for user auth');
   }
@@ -73,10 +66,8 @@ export async function getUserAsync() {
     .select(['displayName', 'mail', 'userPrincipalName'])
     .get();
 }
-// </GetUserSnippet>
 
-// <GetInboxSnippet>
-export async function getInboxAsync() {
+async function getInboxAsync() {
   // Ensure client isn't undefined
   if (!_userClient) {
     throw new Error('Graph has not been initialized for user auth');
@@ -89,10 +80,8 @@ export async function getInboxAsync() {
     .orderby('receivedDateTime DESC')
     .get();
 }
-// </GetInboxSnippet>
 
-// <SendMailSnippet>
-export async function sendMailAsync(subject, body, recipient) {
+async function sendMailAsync(subject, body, recipient) {
   // Ensure client isn't undefined
   if (!_userClient) {
     throw new Error('Graph has not been initialized for user auth');
@@ -119,12 +108,29 @@ export async function sendMailAsync(subject, body, recipient) {
     message: message,
   });
 }
-// </SendMailSnippet>
 
-// <MakeGraphCallSnippet>
 // This function serves as a playground for testing Graph snippets
 // or other code
-export async function makeGraphCallAsync() {
+async function makeGraphCallAsync() {
   // INSERT YOUR CODE HERE
+  try {
+    return logger.info('somethings');
+
+  } catch (error) {
+    logger.error(
+      { name: error.name, message: error.message },
+      'DEBUG: 12. Unhandled error while making graph call async. ',
+    );
+
+    throw error;
+  }
 }
-// </MakeGraphCallSnippet>
+
+module.exports = {
+  makeGraphCallAsync,
+  initializeGraphForUserAuth,
+  getUserTokenAsync,
+  sendMailAsync,
+  getUserAsync,
+  getInboxAsync,
+};

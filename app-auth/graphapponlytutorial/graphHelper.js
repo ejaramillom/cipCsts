@@ -1,4 +1,3 @@
-// <AppOnlyAuthConfigSnippet>
 require('dotenv').config();
 require('isomorphic-fetch');
 const pino = require('pino');
@@ -18,10 +17,9 @@ function initializeGraphForAppOnlyAuth() {
     _settings = {
       tenantId: process.env.TENANT_ID,
       clientId: process.env.CLIENT_ID,
-      clientSecret: process.env.CLIENT_SECRET,
+      clientSecret: process.env.CLIENT_SECRET_VALUE,
     };
-
-    checkEmptySettings(_settings)
+    checkEmptySettings(_settings);
 
     if (!_clientSecretCredential) {
       _clientSecretCredential = new ClientSecretCredential(
@@ -44,7 +42,10 @@ function initializeGraphForAppOnlyAuth() {
       });
     }
   } catch (error) {
-    logger.error({ name: error.name, message: error.message}, 'DEBUG: 1. Unhandled error during authentication. ');
+    logger.error(
+      { name: error.name, message: error.message },
+      'DEBUG: 1. Unhandled error during authentication. ',
+    );
 
     throw error;
   }
@@ -59,7 +60,6 @@ async function getAppOnlyTokenAsync() {
     ]);
 
     return response.token;
-
   } catch (error) {
     logger.error(
       {
@@ -74,23 +74,39 @@ async function getAppOnlyTokenAsync() {
 }
 
 async function getUsersAsync() {
-  checkEmptyAppClient(_appClient);
+  try {
+    checkEmptyAppClient(_appClient);
+    // logger.info({ appClient: _appClient }, 'DEBUG: 999. check empty client');
 
-  return _appClient
-    ?.api('/users')
-    .select(['displayName', 'id', 'mail'])
-    .top(25)
-    .orderby('displayName')
-    .get();
+    return _appClient
+      ?.api('/users')
+      .select(['displayName', 'id', 'mail'])
+      .top(3)
+      .orderby('displayName')
+      .get();
+  } catch (error) {
+    logger.error(
+      {
+        name: error.name,
+        message: error.message,
+      },
+      'DEBUG: 3. Unhandled error in getting user. ',
+    );
+
+    throw error;
+  }
 }
 
 // This function serves as a playground for testing Graph snippets or other code
 async function makeGraphCallAsync() {
   try {
-    return logger.info(`DEBUG: 0. Graph call called`);
+    return logger.info(`DEBUG: 4. Graph call called`);
     // INSERT YOUR CODE HERE
   } catch (error) {
-    logger.error({ name: error.name, message: error.message }, 'DEBUG: 1. Unhandled error in graph call in helper. ');
+    logger.error(
+      { name: error.name, message: error.message },
+      'DEBUG: 5. Unhandled error in graph call in helper. ',
+    );
 
     throw error;
   }
@@ -103,7 +119,7 @@ function checkEmptySettings(settings) {
         name: 'Undefined settings',
         message: 'Settings cannot be undefined',
       },
-      'DEBUG: 3. unhandled error with undefined settings during graph initialization for app auth',
+      'DEBUG: 6. unhandled error with undefined settings during graph initialization for app auth',
     );
 
     throw new Error('Settings cannot be undefined');
@@ -115,12 +131,15 @@ function checkEmptyCredentials(clientSecretCredential) {
     logger.error(
       {
         name: 'Uninitialized graph',
-        message: 'Graph credentials have not been initialized for app-only auth',
+        message:
+          'Graph credentials have not been initialized for app-only auth',
       },
-      'DEBUG: 4. Unhandled error during client secret credential generation. ',
+      'DEBUG: 7. Unhandled error during client secret credential generation. ',
     );
 
-    throw new Error('Graph credentials have not been initialized for app-only auth');
+    throw new Error(
+      'Graph credentials have not been initialized for app-only auth',
+    );
   }
 }
 
@@ -131,10 +150,12 @@ function checkEmptyAppClient(appClient) {
         name: 'Uninitialized graph',
         message: 'Graph app client has not been initialized for app-only auth',
       },
-      'DEBUG: 5. Unhandled error during client secret credential generation. ',
+      'DEBUG: 8. Unhandled error during client secret credential generation. ',
     );
 
-    throw new Error('Graph app client has not been initialized for app-only auth');
+    throw new Error(
+      'Graph app client has not been initialized for app-only auth',
+    );
   }
 }
 

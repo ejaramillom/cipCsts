@@ -1,158 +1,181 @@
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-
-// <ProgramSnippet>
-import { keyInSelect } from 'readline-sync';
-
-import settings from './appSettings.js';
-import {
+require('dotenv').config();
+const pino = require('pino');
+const logger = pino({ level: 'info' });
+const { keyInSelect } = require('readline-sync');
+const {
   initializeGraphForUserAuth,
   getUserAsync,
   getUserTokenAsync,
   getInboxAsync,
   sendMailAsync,
   makeGraphCallAsync,
-} from './graphHelper.js';
+} = require('./graphHelper.js');
+const settings = require('./appSettings.js').settings;
 
 async function main() {
-  console.log('JavaScript Graph Tutorial');
+  try {
+    let choice = 0;
+    initializeGraph(settings);
+    await greetUserAsync();
+    const choices = [
+      'Display access token',
+      'List my inbox',
+      'Send mail',
+      'Make a Graph call',
+    ];
 
-  let choice = 0;
-
-  // Initialize Graph
-  initializeGraph(settings);
-
-  // Greet the user by name
-  await greetUserAsync();
-
-  const choices = [
-    'Display access token',
-    'List my inbox',
-    'Send mail',
-    'Make a Graph call',
-  ];
-
-  while (choice != -1) {
     choice = keyInSelect(choices, 'Select an option', { cancel: 'Exit' });
 
     switch (choice) {
       case -1:
-        // Exit
-        console.log('Goodbye...');
-        break;
+        return logger.info(
+          'DEBUG: 3. No choice was selected. Interrupting execution...',
+        );
       case 0:
         // Display access token
-        await displayAccessTokenAsync();
-        break;
+        return await displayAccessTokenAsync();
       case 1:
         // List emails from user's inbox
-        await listInboxAsync();
-        break;
+        return await listInboxAsync();
       case 2:
         // Send an email message
-        await sendMailToSelfAsync();
-        break;
+        return await sendMailToSelfAsync();
       case 3:
         // Run any Graph code
-        await doGraphCallAsync();
-        break;
+        return await makeGraphCallAsync();
       default:
-        console.log('Invalid choice! Please try again.');
+        return logger.info(
+          `DEBUG: 4. Invalid choice. Please select one of the following: ${choices} Interrupting execution...`,
+        );
     }
+  } catch (error) {
+    logger.error(
+      { name: error.name, message: error.message },
+      'DEBUG: 5. unhandled error during main user index execution. ',
+    );
+
+    throw error;
   }
 }
 
-main();
-// </ProgramSnippet>
-
-// <InitializeGraphSnippet>
 function initializeGraph(settings) {
-  initializeGraphForUserAuth(settings, (info) => {
-    // Display the device code message to
-    // the user. This tells them
-    // where to go to sign in and provides the
-    // code to use.
-    console.log(info.message);
-  });
-}
-// </InitializeGraphSnippet>
+  try {
+    initializeGraphForUserAuth(settings, (info) => {
+      // Display the device code message to
+      // the user. This tells them
+      // where to go to sign in and provides the
+      // code to use.
+      logger.info(
+        { info: info.message },
+        'DEBUG: 6. Message from device login',
+      );
+    });
+  } catch (error) {
+    logger.error(
+      { name: error.name, message: error.message },
+      'DEBUG: 7. unhandled error during user authentication. ',
+    );
 
-// <GreetUserSnippet>
+    throw error;
+  }
+}
+
 async function greetUserAsync() {
   try {
     const user = await getUserAsync();
-    console.log(`Hello, ${user?.displayName}!`);
+    logger.info(`Hello, ${user?.displayName}!`);
     // For Work/school accounts, email is in mail property
     // Personal accounts, email is in userPrincipalName
-    console.log(`Email: ${user?.mail ?? user?.userPrincipalName ?? ''}`);
-  } catch (err) {
-    console.log(`Error getting user: ${err}`);
+    logger.info(`Email: ${user?.mail ?? user?.userPrincipalName ?? ''}`);
+
+  } catch (error) {
+    logger.error(
+      { name: error.name, message: error.message },
+      'DEBUG: 8. unhandled error while greeting user. ',
+    );
+
+    throw error;
   }
 }
-// </GreetUserSnippet>
-
-// <DisplayAccessTokenSnippet>
 async function displayAccessTokenAsync() {
   try {
     const userToken = await getUserTokenAsync();
-    console.log(`User token: ${userToken}`);
-  } catch (err) {
-    console.log(`Error getting user access token: ${err}`);
+
+    logger.info({ token: userToken.slice(0, 5) }, 'DEBUG: 9. User token.');
+
+  } catch (error) {
+    logger.error(
+      { name: error.name, message: error.message },
+      'DEBUG: 10. unhandled error while greeting user. ',
+    );
+
+    throw error;
   }
 }
-// </DisplayAccessTokenSnippet>
-
-// <ListInboxSnippet>
 async function listInboxAsync() {
   try {
     const messagePage = await getInboxAsync();
     const messages = messagePage.value;
 
-    // Output each message's details
     for (const message of messages) {
-      console.log(`Message: ${message.subject ?? 'NO SUBJECT'}`);
-      console.log(`  From: ${message.from?.emailAddress?.name ?? 'UNKNOWN'}`);
-      console.log(`  Status: ${message.isRead ? 'Read' : 'Unread'}`);
-      console.log(`  Received: ${message.receivedDateTime}`);
+      logger.info(`Message: ${message.subject ?? 'NO SUBJECT'}`);
+      logger.info(`  From: ${message.from?.emailAddress?.name ?? 'UNKNOWN'}`);
+      logger.info(`  Status: ${message.isRead ? 'Read' : 'Unread'}`);
+      logger.info(`  Received: ${message.receivedDateTime}`);
     }
 
     // If @odata.nextLink is not undefined, there are more messages
     // available on the server
-    const moreAvailable = messagePage['@odata.nextLink'] != undefined;
-    console.log(`\nMore messages available? ${moreAvailable}`);
-  } catch (err) {
-    console.log(`Error getting user's inbox: ${err}`);
+    const moreAvailable = messagePage['@odata.nextLink'] !== undefined;
+    logger.info(`More messages available? ${moreAvailable}`);
+
+  } catch (error) {
+    logger.error(
+      { name: error.name, message: error.message },
+      'DEBUG: 11. unhandled error while listing user inbox. ',
+    );
+
+    throw error;
   }
 }
-// </ListInboxSnippet>
-
-// <SendMailSnippet>
 async function sendMailToSelfAsync() {
   try {
     // Send mail to the signed-in user
     // Get the user for their email address
     const user = await getUserAsync();
     const userEmail = user?.mail ?? user?.userPrincipalName;
-
     if (!userEmail) {
-      console.log("Couldn't get your email address, canceling...");
-      return;
+      return logger.info("Couldn't get your email address, canceling...");
     }
-
     await sendMailAsync('Testing Microsoft Graph', 'Hello world!', userEmail);
-    console.log('Mail sent.');
-  } catch (err) {
-    console.log(`Error sending mail: ${err}`);
-  }
-}
-// </SendMailSnippet>
+    logger.info('Mail sent.');
 
-// <MakeGraphCallSnippet>
-async function doGraphCallAsync() {
-  try {
-    await makeGraphCallAsync();
-  } catch (err) {
-    console.log(`Error making Graph call: ${err}`);
+  } catch (error) {
+    logger.error(
+      { name: error.name, message: error.message },
+      'DEBUG: 12. unhandled error while sending user email. ',
+    );
+
+    throw error;
   }
 }
-// </MakeGraphCallSnippet>
+
+(async () => {
+  try {
+    const result = await main();
+    logger.info(
+      { status: 200, message: result },
+      'DEBUG: 1.1 User auth cip csts success! ',
+    );
+
+    process.exit(0);
+
+  } catch (error) {
+    logger.error(
+      { name: error.name, message: error.message },
+      'DEBUG: 2.1 User Test failed: ',
+    );
+
+    throw error;
+  }
+})();
